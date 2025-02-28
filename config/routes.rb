@@ -23,13 +23,8 @@ Rails.application.routes.draw do
         resources :items, only: %i[create update destroy], controller: 'cart_items'
       end
 
-      # Pedidos
-      resources :orders, only: %i[index show create] do
-        resources :items, only: [:index], controller: 'order_items'
-      end
-
-      # Pagamentos
-      post 'payments', to: 'payments#create'
+      post 'checkout', to: 'checkout#create'
+      post 'orders', to: 'orders#create'
     end
   end
 end

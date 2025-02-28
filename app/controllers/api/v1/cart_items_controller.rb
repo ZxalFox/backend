@@ -5,16 +5,22 @@ module Api
 
       # POST /api/v1/cart/items
       def create
-        @cart = Cart.find_or_create_by(user_id: current_user.id)
+        unless @current_user
+          Rails.logger.error 'Erro: Usuário não autenticado ao adicionar item ao carrinho'
+          return render json: { error: 'Usuário não autenticado' }, status: :unauthorized
+        end
+      
+        @cart = Cart.find_or_create_by(user_id: @current_user.id)
         @cart_item = @cart.cart_items.find_or_initialize_by(product_id: cart_item_params[:product_id])
-        @cart_item.quantity += cart_item_params[:quantity].to_i
-        
+        @cart_item.quantity = (@cart_item.quantity || 0) + cart_item_params[:quantity].to_i
+
+      
         if @cart_item.save
           render json: @cart_item, status: :created
         else
           render json: @cart_item.errors, status: :unprocessable_entity
         end
-      end      
+      end           
 
       # PUT /api/v1/cart/items/:id
       def update
@@ -31,7 +37,6 @@ module Api
 
       # DELETE /api/v1/cart/items/:id
       def destroy
-        @cart_item = CartItem.find(params[:id])
         if @cart_item.destroy
           head :no_content
         else
@@ -46,8 +51,8 @@ module Api
       end
 
       def cart_item_params
-        params.expect(cart_item: %i[product_id quantity])
+        params.require(:cart_item).permit(:product_id, :quantity)
       end
     end
   end
-  end
+end

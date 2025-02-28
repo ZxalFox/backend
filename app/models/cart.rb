@@ -4,7 +4,7 @@ class Cart < ApplicationRecord
   has_many :products, through: :cart_items
 
   # Calcula o valor total do carrinho
-  def total_amount
+  def total_price_cents
     cart_items.sum { |item| item.product.price * item.quantity }
   end
 end

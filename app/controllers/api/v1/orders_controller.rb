@@ -1,61 +1,39 @@
 module Api
   module V1
     class OrdersController < ApplicationController
-      before_action :set_order, only: [:show]
-
-      # GET /api/v1/orders
-      def index
-        @orders = current_user.orders
-        render json: @orders
-      end
-
-      # GET /api/v1/orders/:id
-      def show
-        render json: @order
-      end
-
-      # POST /api/v1/orders
       def create
-        @cart = current_user.cart
-        return render json: { error: 'Carrinho vazio' }, status: :unprocessable_entity if @cart.cart_items.empty?
+        payment_intent = Stripe::PaymentIntent.retrieve(params[:payment_intent_id])
 
-        @order = build_order
-
-        if @order.save
-          process_order_items
-          clear_cart
-          render json: @order, status: :created
-        else
-          render json: @order.errors, status: :unprocessable_entity
+        if payment_intent.status != 'succeeded'
+          return render json: { error: 'Pagamento não aprovado' }, status: :unprocessable_entity
         end
-      end
 
-      private
+        cart = Cart.find_by(user_id: @current_user.id)
 
-      def set_order
-        @order = Order.find(params[:id])
-      end
-
-      def build_order
-        current_user.orders.new(
-          total_amount: @cart.total_amount,
-          status: 'pending',
-          stripe_payment_id: params[:order][:stripe_payment_id]
+        order = Order.create!(
+          user: @current_user,
+          total: cart.total_price_cents,
+          status: 'paid',
+          payment_intent_id: payment_intent.id
         )
-      end
 
-      def process_order_items
-        @cart.cart_items.each do |item|
-          @order.order_items.create(
-            product: item.product,
-            quantity: item.quantity,
-            price: item.product.price
+        # Mover itens do carrinho para o pedido
+        cart.cart_items.each do |cart_item|
+          order.order_items.create!(
+            product: cart_item.product,
+            quantity: cart_item.quantity,
+            price: cart_item.product.price
           )
         end
-      end
 
-      def clear_cart
-        @cart.cart_items.destroy_all
+        # Esvaziar o carrinho
+        cart.cart_items.destroy_all
+
+        render json: { order: order }, status: :created
+      rescue Stripe::StripeError => e
+        render json: { error: e.message }, status: :unprocessable_entity
+      rescue ActiveRecord::RecordInvalid => e
+        render json: { error: e.message }, status: :unprocessable_entity
       end
     end
   end
