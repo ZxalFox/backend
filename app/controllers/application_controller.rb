@@ -1,14 +1,13 @@
 class ApplicationController < ActionController::API
-  before_action :authenticate_user
+  before_action :authorize_request, except: :create
 
-  def authenticate_user
+  def authorize_request
     header = request.headers['Authorization']
-    token = header.split.last if header
-
+    header = header.split.last if header
     begin
-      decoded = JwtService.decode(token)
-      @current_user = User.find(decoded[:user_id])
-    rescue StandardError
+      decoded = JWT.decode(header, Rails.application.secrets.secret_key_base)[0]
+      @current_user = User.find(decoded['user_id'])
+    rescue ActiveRecord::RecordNotFound, JWT::DecodeError
       render json: { error: 'Token inválido ou expirado' }, status: :unauthorized
     end
   end

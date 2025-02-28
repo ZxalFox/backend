@@ -1,21 +1,18 @@
-# app/controllers/api/v1/products_controller.rb
 module Api
   module V1
     class ProductsController < ApplicationController
-      before_action :set_product, only: %i[show update destroy]
-
-      # GET /api/v1/products
+      skip_before_action :authorize_request, only: %i[index show] # Permite listar e ver produtos sem login
+      
       def index
-        @products = Product.page(params[:page]).per(10)
+        @products = Product.all
         render json: @products
       end
 
-      # GET /api/v1/products/:id
       def show
+        @product = Product.find(params[:id])
         render json: @product
       end
 
-      # POST /api/v1/products
       def create
         @product = Product.new(product_params)
         if @product.save
@@ -25,30 +22,11 @@ module Api
         end
       end
 
-      # PUT /api/v1/products/:id
-      def update
-        if @product.update(product_params)
-          render json: @product
-        else
-          render json: @product.errors, status: :unprocessable_entity
-        end
-      end
-
-      # DELETE /api/v1/products/:id
-      def destroy
-        @product.destroy
-        head :no_content
-      end
-
       private
 
-      def set_product
-        @product = Product.find(params[:id])
-      end
-
       def product_params
-        params.expect(product: %i[name description price category])
+        params.require(:product).permit(:name, :price, :description, :stock)
       end
     end
   end
-  end
+end
