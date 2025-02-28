@@ -15,16 +15,18 @@ Rails.application.routes.draw do
       post 'login', to: 'sessions#create'
 
       # Recursos
-      resources :users, only: [:show, :update]
-      resources :products, only: [:index, :show, :create, :update, :destroy]
+      resources :users, only: %i[show update]
+      resources :products, only: %i[index show create update destroy]
 
       # Carrinho de Compras
       resource :cart, only: [:show] do
-        resources :items, only: [:create, :update, :destroy], controller: 'cart_items'
+        resources :items, only: %i[create update destroy], controller: 'cart_items'
       end
 
       # Pedidos
-      resources :orders, only: [:index, :show, :create]
+      resources :orders, only: %i[index show create] do
+        resources :items, only: [:index], controller: 'order_items'
+      end
 
       # Pagamentos
       post 'payments', to: 'payments#create'

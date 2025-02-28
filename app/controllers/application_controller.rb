@@ -1,17 +1,15 @@
 class ApplicationController < ActionController::API
-    before_action :authenticate_user
-  
-    attr_reader :current_user
-  
-    private
-  
-    def authenticate_user
-      token = request.headers['Authorization']&.split(' ')&.last
-      if token
-        decoded = JwtService.decode(token)
-        @current_user = User.find(decoded[:user_id]) if decoded
-      end
-  
-      render json: { error: "Não autorizado" }, status: :unauthorized unless @current_user
+  before_action :authenticate_user
+
+  def authenticate_user
+    header = request.headers['Authorization']
+    token = header.split.last if header
+
+    begin
+      decoded = JwtService.decode(token)
+      @current_user = User.find(decoded[:user_id])
+    rescue StandardError
+      render json: { error: 'Token inválido ou expirado' }, status: :unauthorized
     end
   end
+end
