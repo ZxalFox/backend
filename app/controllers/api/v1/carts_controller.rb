@@ -5,7 +5,7 @@ module Api
 
       # GET /api/v1/cart
       def show
-        render json: @cart, include: { cart_items: { include: :product } }, methods: :total_amount
+        render json: @cart, include: { cart_items: { include: :product } }, methods: :total_price_cents
       end
       
 
