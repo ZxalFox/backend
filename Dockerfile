@@ -50,4 +50,5 @@ USER 1000:1000
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 EXPOSE 3000
-CMD ["./bin/thrust", "./bin/rails", "server", "-b", "0.0.0.0", "-p", "$PORT"]
+CMD ["sh", "-c", "./bin/thrust && ./bin/rails server -b 0.0.0.0 -p $PORT"]
+
