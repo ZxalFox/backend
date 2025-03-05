@@ -50,6 +50,7 @@ USER 1000:1000
 ENTRYPOINT ["/rails/bin/docker-entrypoint"]
 
 EXPOSE 3000
-CMD sh -c "./bin/thrust && exec rails server -b 0.0.0.0 -p $PORT"
+CMD ["/rails/bin/docker-entrypoint", "rails", "server", "-b", "0.0.0.0", "-p", "3000"]
+
 
 
