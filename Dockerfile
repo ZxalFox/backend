@@ -42,7 +42,7 @@ RUN groupadd --system --gid 1000 rails && \
     chown -R rails:rails db log storage tmp
 
 # Criando um script de entrada
-COPY bin/docker-entrypoint /rails/bin/docker-entrypoint
+COPY --chmod=755 bin/docker-entrypoint /rails/bin/docker-entrypoint
 RUN chmod +x /rails/bin/docker-entrypoint
 
 USER 1000:1000
