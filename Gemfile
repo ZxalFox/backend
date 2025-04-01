@@ -58,4 +58,4 @@ group :development, :test do
 end
 
 gem "rubocop", "~> 1.72", :groups => %i[development test]
-gem "rubocop-rails", "~> 2.30", :groups => %i[development test]
+gem "rubocop-rails", "~> 2.31", :groups => %i[development test]
